@@ -1,0 +1,86 @@
+CPU mySystem {
+
+  OS myOs {
+    EE_OPT = "OS_EE_APPL_BUILD_DEBUG";
+    EE_OPT = "OS_EE_BUILD_DEBUG";
+
+    USERESSCHEDULER = FALSE;
+
+    CPU_DATA = AVR8 {
+      MULTI_STACK = TRUE;
+    };
+
+    MCU_DATA = MEGA {
+      MODEL = MEGA_328p;
+    };
+ 
+    USEEXTENSIONAPI = TRUE {
+      SEMAPHORE = DEFAULT { NAME = "V"; COUNT=0; };
+    };
+
+    LIB = ARDUINO {
+      SDK_BOARD = UNO;
+      VARIANT = CC {
+        VERSION = "1.8.5";
+      };
+      STAND_ALONE = TRUE;
+    };
+
+    KERNEL_TYPE = OSEK {
+      CLASS = ECC2;
+    };
+
+    STARTUPHOOK = FALSE;
+
+  };
+
+  APPDATA myApp {
+    APP_SRC = "code.cpp";
+  };
+
+  COUNTER SystemCounter {
+		MINCYCLE = 1;
+		MAXALLOWEDVALUE = 65535;
+		TICKSPERBASE = 1;
+		TYPE = HARDWARE {
+			 PRIORITY     = 1;
+			DEVICE = "TIMER1_COMPA";
+			SYSTEM_TIMER = TRUE;
+		};
+		SECONDSPERTICK = 0.01;
+	};
+	
+	ALARM al_rallenta {
+		COUNTER = SystemCounter;
+		ACTION = SETEVENT {
+			TASK = Task1; EVENT = ev_rallenta;
+		};
+		AUTOSTART = TRUE {
+			ALARMTIME = 10;
+			CYCLETIME = 10;
+		};
+	};
+	
+	ALARM al_termina{
+		COUNTER = SystemCounter;
+		ACTION = SETEVENT {
+			TASK = Task1; EVENT = ev_termina;
+		};
+		AUTOSTART = FALSE;	
+	};
+	
+	EVENT ev_rallenta { MASK = AUTO; };
+	EVENT ev_termina { MASK = AUTO; };
+	
+	TASK Task1 {					
+		PRIORITY = 1; 
+		SCHEDULE = FULL;
+		AUTOSTART = TRUE;
+		STACK = PRIVATE {
+			SIZE = 128;
+		};
+		ACTIVATION = 1; 
+		EVENT= ev_rallenta;
+		EVENT=ev_termina;
+	};
+};
